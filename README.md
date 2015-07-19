@@ -8,7 +8,7 @@ This is sort of a conceptual reversal (or not, this might just be making the des
 
 The cool thing about WebP which was exploited in Weppy is that it's actually based on the same codec as WebM, On2's VP8. That means the actual image data, when the container formats are ignored, are virtually interchangable. With a catch: it's intraframe only.
 
-So it's a video encoder in that it generates `.webm` files which should play in just about any program or device which supports the WebM format. But interframe compression is actually a fairly important thing which could reduce the file size by an order of magnitude or more. 
+So it's a video encoder in that it generates `.webm` files which should play in just about any program or device which supports the WebM format. But interframe compression is actually a fairly important thing which could reduce the file size by an order of magnitude or more.
 
 But, there isn't too much you can do on the client side in the ways of encoding stuff. And whatever you do, you basically can't do interframe compression (aside from some really rudimentary delta encoding). More or less, when your only alternative is to maintain an array of DataURL encoded frames or encoding it (rather slowly) as a [GIF](https://github.com/antimatter15/jsgif), a fast but inefficient WebM encoder stops looking too bad.
 
@@ -26,7 +26,7 @@ First, let's include the JS file. It's self contained and basically namespaced, 
 
 The API isn't terrible either (at least, that's what I'd like to hope)
 
-	var encoder = new Whammy.Video(15); 
+	var encoder = new Whammy.Video(15);
 
 That `15` over there is the frame rate. There's a way to set the individual duration of each frame manually, but you can look in the code for that.
 
@@ -49,3 +49,14 @@ And you're done. Awesome.
 `new Whammy.Video(optional fps, optional quality)` this is the constructor for the main API. quality only applies if you're sending in contexts or canvas objects and doesn't matter if you're sending in encoded stuff
 
 `.add(canvas or context or dataURL, optional duration)` if fps isn't specified in the constructor, you can stick a duration (in milliseconds) here.
+
+
+## License
+
+Copyright (C) 2013 Kevin Kwok
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
