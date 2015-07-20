@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<head>
+  <title>Media</title>
+  <script>window.exports = window.whammy = {};</script>
+  <script src="../whammy.js"></script>
+</head>
+<body>
+  <table>
+    <tr>
+      <th>Live Video</th>
+      <th>Recorded Video</th>
+    </tr>
+    <tr>
+      <td>
+        <video id="live" autoplay></video>
+      </td>
+      <td>
+        <video id="recorded" autoplay loop></video>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <button onclick="start()">Start</button>
+        <button onclick="stop()">Stop</button>
+      </td>
+      <td>
+        <a id="download" download="media.webm">Download WebM</a>
+      </td>
+    </tr>
+  </table>
+</body>
+<script>
+/*jslint browser: true, esnext: true */ /*globals whammy */
+// de-prefix getUserMedia and requestAnimationFrame
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
+
+var live_video = document.getElementById('live');
+var recorded_video = document.getElementById('recorded');
+// var width = 1280, height = 720;
+// var width = 640, height = 480;
+// var width = 480, height = 360;
+var width = 360, height = 240;
+var quality = 0.80;
+
+var stopped = null; // false
+var video = null; // new whammy.Video();
+
+function main() {
+  navigator.getUserMedia({
+    video: {
+      mandatory: {
+        minWidth: width,
+        minHeight: height,
+        maxWidth: width,
+        maxHeight: height,
+        // minFrameRate: 60,
+      }
+    }
+  }, function(mediaStream) {
+    live_video.src = URL.createObjectURL(mediaStream);
+  }, function(mediaStreamError) {
+    console.error('Failed to initialize MediaStream', mediaStreamError);
+  });
+}
+
+function start() {
+  console.log('starting');
+  stopped = false;
+  video = new whammy.Video();
+
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  var context = canvas.getContext('2d');
+
+  var frames_per_second = 30;
+  var ms_per_frame = 1000 / frames_per_second;
+  var last_draw = window.performance.now();
+
+  function animate(timestamp) {
+    if (!stopped) {
+      requestAnimationFrame(animate);
+    }
+    var elapsed_since_last_draw = timestamp - last_draw;
+    // console.log('elapsed_since_last_draw', elapsed_since_last_draw);
+    if (elapsed_since_last_draw > ms_per_frame) {
+      last_draw = timestamp - (elapsed_since_last_draw % ms_per_frame);
+      context.drawImage(live_video, 0, 0, width, height);
+      // console.time('Time to generate canvas DataURL');
+      var url = canvas.toDataURL('image/webp', quality);
+      // console.timeEnd('Time to generate canvas DataURL');
+      video.frames.push({image: url, duration: elapsed_since_last_draw});
+    }
+  }
+  requestAnimationFrame(animate);
+  // function loop() {
+  //   if (stopped) return;
+  //   var timestamp = window.performance.now();
+  //   var elapsed_since_last_draw = timestamp - last_draw;
+  //   last_draw = timestamp - (elapsed_since_last_draw % ms_per_frame);
+  //   context.drawImage(live_video, 0, 0, width, height);
+  //   var url = canvas.toDataURL('image/webp', quality);
+  //   video.frames.push({image: url, duration: elapsed_since_last_draw});
+  //   setTimeout(loop, ms_per_frame);
+  // }
+  // loop();
+}
+
+function stop() {
+  console.log('stopping');
+  stopped = true;
+
+  var number_of_frames = video.frames.length;
+  var total_seconds = video.duration / 1000;
+  var actual_frames_per_second = number_of_frames / total_seconds;
+  console.log('compiling %s frames over %s seconds for %f fps', number_of_frames, total_seconds, actual_frames_per_second);
+
+  console.time('Time to compile WebM');
+  var video_blob = video.compile();
+  console.timeEnd('Time to compile WebM');
+
+  var video_url = URL.createObjectURL(video_blob);
+  recorded_video.src = video_url;
+
+  var download = document.getElementById('download');
+  download.href = video_url;
+  download.innerText = 'Download (' + (video_blob.size / 1024).toFixed(0)  + ' KB)';
+}
+
+main();
+</script>
